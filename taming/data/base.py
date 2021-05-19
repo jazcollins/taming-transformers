@@ -1,9 +1,9 @@
 import bisect
 import numpy as np
 import albumentations
-from PIL import Image
+from PIL import Image, ImageFile
 from torch.utils.data import Dataset, ConcatDataset
-
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class ConcatDatasetWithIndex(ConcatDataset):
     """Modified from original pytorch code to return dataset idx"""
@@ -45,7 +45,10 @@ class ImagePaths(Dataset):
     def preprocess_image(self, image_path):
         image = Image.open(image_path)
         if not image.mode == "RGB":
-            image = image.convert("RGB")
+            try:
+                image = image.convert("RGB")
+            except:
+                print('FAILED on image_path', image_path)
         image = np.array(image).astype(np.uint8)
         image = self.preprocessor(image=image)["image"]
         image = (image/127.5 - 1.0).astype(np.float32)

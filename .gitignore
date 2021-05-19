@@ -4,5 +4,4 @@ __pycache__/
 *.swp
 logs/
 taming/modules/autoencoder/
-data/
 
