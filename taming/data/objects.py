@@ -1,4 +1,5 @@
 import os
+import glob
 import numpy as np
 import albumentations
 from torch.utils.data import Dataset
@@ -56,9 +57,40 @@ class ShapeNetValidation(ObjectsBase):
         self.keys = keys
 
 
+class AmazonTrain(ObjectsBase):
+    def __init__(self, size, keys=None):
+        super().__init__()
+        root = "data/amazon"
+        with open("data/amazon/train.txt", "r") as f:
+            relpaths = f.read().splitlines()
+        paths = [os.path.join(root, relpath) for relpath in relpaths]
+        img_paths = []
+        for path in paths:
+            all_images = sorted(glob.glob(os.path.join(path, '*')))
+            img_paths.extend(all_images)
+        self.data = ImagePaths(paths=img_paths, size=size, random_crop=False)
+        self.keys = keys
+
+
+class AmazonValidation(ObjectsBase):
+    def __init__(self, size, keys=None):
+        super().__init__()
+        root = "data/amazon"
+        with open("data/amazon/val.txt", "r") as f:
+            relpaths = f.read().splitlines()
+        paths = [os.path.join(root, relpath) for relpath in relpaths]
+        img_paths = []
+        for path in paths:
+            all_images = sorted(glob.glob(os.path.join(path, '*')))
+            img_paths.extend(all_images)
+        self.data = ImagePaths(paths=img_paths, size=size, random_crop=False)
+        self.keys = keys
+
+
 class ObjectsTrain(Dataset):
     def __init__(self, size, keys=None, crop_size=None, coord=False):
-        self.data = ShapeNetTrain(size=size, keys=keys)
+        # self.data = ShapeNetTrain(size=size, keys=keys)
+        self.data = AmazonTrain(size=size, keys=keys)
         self.coord = coord
         if crop_size is not None:
             self.cropper = albumentations.RandomCrop(height=crop_size,width=crop_size)
@@ -87,7 +119,8 @@ class ObjectsTrain(Dataset):
 
 class ObjectsValidation(Dataset):
     def __init__(self, size, keys=None, crop_size=None, coord=False):
-        self.data = ShapeNetValidation(size=size, keys=keys)
+        # self.data = ShapeNetValidation(size=size, keys=keys)
+        self.data = AmazonValidation(size=size, keys=keys)
         self.coord = coord
         if crop_size is not None:
             self.cropper = albumentations.CenterCrop(height=crop_size,width=crop_size)
